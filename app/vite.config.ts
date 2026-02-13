@@ -13,12 +13,29 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use('/data', (req, res, next) => {
           const dataDir = path.resolve(process.cwd(), '..', 'data')
-          const url = req.url ?? '/'
+          let url = req.url ?? '/'
+          if (url.startsWith('/data')) url = url.slice('/data'.length)
+          if (url.startsWith('/')) url = url.slice(1)
+          try {
+            url = decodeURIComponent(url)
+          } catch {
+            return next()
+          }
           const file = path.join(dataDir, url)
-          if (!file.startsWith(dataDir) || !fs.existsSync(file)) return next()
+          const normalizedFile = path.normalize(file)
+          const normalizedDataDir = path.normalize(dataDir)
+          if (!normalizedFile.startsWith(normalizedDataDir) || !fs.existsSync(file)) return next()
           const stat = fs.statSync(file)
           if (!stat.isFile()) return next()
-          res.setHeader('Content-Type', url.endsWith('.json') ? 'application/json' : 'image/png')
+          const ext = path.extname(file).toLowerCase()
+          const contentType =
+            ext === '.json' ? 'application/json'
+            : ext === '.png' ? 'image/png'
+            : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg'
+            : ext === '.gif' ? 'image/gif'
+            : ext === '.webp' ? 'image/webp'
+            : 'application/octet-stream'
+          res.setHeader('Content-Type', contentType)
           fs.createReadStream(file).pipe(res)
         })
       },

@@ -10,7 +10,7 @@
 |------|------|------|
 | **1단계** | 프로젝트 환경 설정 및 데이터 정규화 | ✅ 완료 |
 | **2단계** | 도면 탐색 UI (Sidebar/Navigator) | ✅ 완료 |
-| **3단계** | 도면 뷰어 및 좌표 변환 (Main Viewer) | ⬜ 예정 |
+| **3단계** | 도면 뷰어 및 좌표 변환 (Main Viewer) | ✅ 완료 |
 | **4단계** | 리비전 비교 및 변경 이력 (Feature) | ⬜ 예정 |
 
 ---
@@ -96,9 +96,31 @@ front_origin/
 
 ---
 
-## 3단계: 도면 뷰어 및 좌표 변환 — 예정
+## 3단계: 도면 뷰어 및 좌표 변환 — 완료
 
-- 이미지 렌더링, imageTransform 오버레이, polygon 하이라이트 등
+### 한 일
+
+- **도면 이미지 표시 (필수 기능 충족)**
+  - `src/components/DrawingViewer.tsx`: 선택된 도면/공종/리비전에 맞는 이미지 경로 결정 후 `<img>`로 표시
+  - 이미지 경로 우선순위: `revision.image` → `discipline.image` → `discipline.revisions[0].image` → `drawing.image`
+  - App.tsx 메인 영역에 "도면 이미지" 섹션으로 연동
+
+- **이미지 서빙 (vite.config.ts)**
+  - `/data` 요청 시 한글 파일명 처리: `decodeURIComponent` 적용
+  - 확장자별 Content-Type 설정 (`.json`, `.png`, `.jpeg` 등)
+  - 경로 정규화 후 `dataDir` 밖 접근 방지
+
+- **구조(regions) 처리**
+  - `DisciplineList.tsx`: 메타데이터에서 `regions`가 **객체**(`{ A: {...}, B: {...} }`)로 오는 경우 처리
+  - `Array.isArray(regions)` 아니면 `Object.entries(regions)`로 리비전 목록 생성 → Region A/B 리비전 표시
+
+- **뷰어 UX**
+  - 뷰어 영역 `min-h-[480px]` 고정, 이미지 `object-contain`으로 비율 유지하며 영역 안에 맞춤 → 도면 바꿀 때 레이아웃 덜 튐
+
+### 미구현 (선택, 4단계 또는 추후)
+
+- imageTransform 오버레이 (공종별 도면 겹쳐보기)
+- polygon 하이라이트 및 클릭 시 해당 도면으로 이동
 
 ---
 
@@ -108,9 +130,21 @@ front_origin/
 
 ---
 
+## 어려움을 겪었던 부분 / 해결
+
+| 구간 | 어려웠던 점 | 해결 |
+|------|-------------|------|
+| **실행 환경** | PowerShell에서 `npm run dev` 시 스크립트 실행 정책 오류 | `npm.cmd run dev` 사용 또는 `Set-ExecutionPolicy Bypass -Scope Process` 후 실행. 또는 터미널을 CMD로 변경. |
+| **이미지 미표시** | `/data/drawings/한글파일명.png` 요청 시 이미지가 안 나오고 빈 화면 또는 깨진 아이콘 | (1) 요청 URL이 인코딩(`%EC%A3%BC%EB%AF%BC...`)되어 있어 서버에서 파일을 못 찾음 → `decodeURIComponent`로 디코딩 후 경로 매칭. (2) Content-Type이 잘못되면 브라우저가 이미지를 안 그림 → 확장자별 `image/png`, `image/jpeg` 등 설정. |
+| **구조 클릭 시 에러** | 101동에서 '구조' 선택 시 `regions?.forEach is not a function`, 화면 하얗게 | 메타데이터에서 `regions`가 배열이 아니라 **객체**(`{ "A": {...}, "B": {...} }`)로 옴. `Array.isArray(regions)` 분기 후, 객체면 `Object.entries(regions)`로 리스트 만들어 리비전 평탄화. |
+| **이미지마다 크기 차이** | 도면/공종/리비전 바꿀 때마다 뷰어 영역이 크게 달라짐 | 뷰어 컨테이너에 `min-h-[480px]` 부여, 이미지에 `max-w-full` + `max-h-[...]` + `object-contain` 적용해 비율 유지하며 영역 안에만 맞춤. |
+
+---
+
 ## 변경 이력 (작업할 때마다 추가)
 
 | 날짜 | 내용 |
 |------|------|
 | (최초) | 1단계 완료. PROGRESS.md 생성, 단계별 요약 및 1단계 상세 기록. |
 | (2단계) | AppContext 추가, DrawingTree·DisciplineList 구현, 건물→공종→리비전 탐색 흐름 및 선택 상태 메인 영역 연동. PROGRESS.md 2단계 완료 반영. |
+| (3단계) | DrawingViewer 추가, 이미지 서빙(URL 디코딩·Content-Type), 구조 regions 객체 처리, 뷰어 영역 고정. PROGRESS.md 3단계 완료 및 어려웠던 부분 정리 반영. |

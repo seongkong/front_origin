@@ -1,6 +1,7 @@
 import { AppLayout } from './components/Layout'
 import { DrawingTree } from './components/DrawingTree'
 import { DisciplineList } from './components/DisciplineList'
+import { DrawingViewer } from './components/DrawingViewer'
 import { useApp } from './context/AppContext'
 
 function App() {
@@ -68,9 +69,10 @@ function App() {
                   </ul>
                 </div>
               )}
-              <p className="text-gray-500 mt-4 border-t pt-4">
-                (3단계에서 선택한 도면 이미지가 여기에 표시됩니다)
-              </p>
+              <div className="mt-4 border-t pt-4">
+                <h3 className="text-base font-semibold text-gray-800 mb-2">도면 이미지</h3>
+                <DrawingViewer />
+              </div>
             </div>
           )}
         </>
