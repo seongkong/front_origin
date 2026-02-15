@@ -1,4 +1,4 @@
-import type { Revision } from '../types/metadata'
+import type { Region, Revision } from '../types/metadata'
 import { useApp } from '../context/AppContext'
 
 /** 선택된 도면의 공종 목록 + 선택된 공종의 리비전 목록 */
@@ -31,8 +31,8 @@ export function DisciplineList() {
       ? rawRegions
       : rawRegions && typeof rawRegions === 'object'
         ? Object.entries(rawRegions).map(([key, region]) => ({
-            name: (region as { name?: string }).name ?? key,
-            revisions: (region as { revisions?: Revision[] }).revisions,
+            name: (region as Region).name ?? key,
+            revisions: (region as Region).revisions,
           }))
         : []
     regionList.forEach((region) => {
