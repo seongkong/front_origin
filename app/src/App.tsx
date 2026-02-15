@@ -1,6 +1,7 @@
 import { AppLayout } from './components/Layout'
 import { DrawingTree } from './components/DrawingTree'
 import { DisciplineList } from './components/DisciplineList'
+import { OverlayControls } from './components/OverlayControls'
 import { DrawingViewer } from './components/DrawingViewer'
 import { useApp } from './context/AppContext'
 
@@ -71,6 +72,7 @@ function App() {
               )}
               <div className="mt-4 border-t pt-4">
                 <h3 className="text-base font-semibold text-gray-800 mb-2">도면 이미지</h3>
+                <OverlayControls />
                 <DrawingViewer />
               </div>
             </div>

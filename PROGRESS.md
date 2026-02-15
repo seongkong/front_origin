@@ -11,7 +11,7 @@
 | **1단계** | 프로젝트 환경 설정 및 데이터 정규화 | ✅ 완료 |
 | **2단계** | 도면 탐색 UI (Sidebar/Navigator) | ✅ 완료 |
 | **3단계** | 도면 뷰어 및 좌표 변환 (Main Viewer) | ✅ 완료 |
-| **4단계** | 리비전 비교 및 변경 이력 (Feature) | ⬜ 예정 |
+| **4단계** | 리비전 비교 및 공종 겹쳐보기 (Overlay) | ✅ 완료 |
 
 ---
 
@@ -117,16 +117,34 @@ front_origin/
 - **뷰어 UX**
   - 뷰어 영역 `min-h-[480px]` 고정, 이미지 `object-contain`으로 비율 유지하며 영역 안에 맞춤 → 도면 바꿀 때 레이아웃 덜 튐
 
-### 미구현 (선택, 4단계 또는 추후)
+### 미구현 (선택, 추후)
 
-- imageTransform 오버레이 (공종별 도면 겹쳐보기)
 - polygon 하이라이트 및 클릭 시 해당 도면으로 이동
 
 ---
 
-## 4단계: 리비전 비교 및 변경 이력 — 예정
+## 4단계: 리비전 비교 및 공종 겹쳐보기 (Overlay) — 완료
 
-- 리비전 타임라인, 공종 중첩(Overlay) 등
+### 한 일
+
+- **오버레이 상태 (Context)**
+  - `AppContext`: `OverlayState` 추가 — `overlay.disciplineKeys`(겹쳐볼 공종 키 목록), `overlay.opacity`(겹친 레이어 투명도)
+  - `setOverlay(patch)`, `toggleOverlayDiscipline(key)` 제공
+  - 도면 변경 시 `overlay.disciplineKeys` 자동 초기화
+
+- **오버레이 UI**
+  - `src/components/OverlayControls.tsx`: 현재 도면의 공종이 2개 이상일 때만 표시
+  - 공종별 체크박스로 겹쳐볼 공종 선택, 투명도 슬라이더(20%～100%)로 겹친 레이어 opacity 조절
+  - 도면 이미지 섹션에서 뷰어 위에 배치
+
+- **DrawingViewer 오버레이 모드**
+  - `overlay.disciplineKeys.length >= 2`일 때: 베이스 이미지(`drawing.image`)를 먼저 로드해 컨테이너 크기 결정
+  - 선택된 공종 이미지를 각 `imageTransform`(x, y, scale, rotation)으로 베이스 위에 겹쳐 그림 (`position: absolute` + `transform` + `opacity`)
+  - 베이스 로드 후 `naturalWidth`/`naturalHeight`로 레이어 좌표계 유지, 오버레이 이미지는 `transformOrigin: 0 0`으로 scale/rotation 적용
+
+### 미구현 (선택)
+
+- 리비전 타임라인 보강
 
 ---
 
@@ -148,3 +166,4 @@ front_origin/
 | (최초) | 1단계 완료. PROGRESS.md 생성, 단계별 요약 및 1단계 상세 기록. |
 | (2단계) | AppContext 추가, DrawingTree·DisciplineList 구현, 건물→공종→리비전 탐색 흐름 및 선택 상태 메인 영역 연동. PROGRESS.md 2단계 완료 반영. |
 | (3단계) | DrawingViewer 추가, 이미지 서빙(URL 디코딩·Content-Type), 구조 regions 객체 처리, 뷰어 영역 고정. PROGRESS.md 3단계 완료 및 어려웠던 부분 정리 반영. |
+| (4단계) | OverlayState·OverlayControls 추가, DrawingViewer에서 베이스+imageTransform 오버레이 렌더링. PROGRESS.md 4단계 완료 반영. |

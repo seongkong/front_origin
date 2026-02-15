@@ -17,21 +17,35 @@ export interface SelectionState {
   revision: Revision | null
 }
 
+/** 4단계: 겹쳐보기에 켜진 공종 키 목록 (같은 도면 내) */
+export interface OverlayState {
+  disciplineKeys: string[]
+  opacity: number
+}
+
 interface AppContextValue {
   normalized: NormalizedMetadata | null
   loading: boolean
   error: string | null
   selection: SelectionState
+  overlay: OverlayState
   setSelection: (patch: Partial<SelectionState>) => void
+  setOverlay: (patch: Partial<OverlayState>) => void
   selectDrawing: (drawingId: string | null) => void
   selectDiscipline: (disciplineKey: string | null) => void
   selectRevision: (revision: Revision | null) => void
+  toggleOverlayDiscipline: (key: string) => void
 }
 
 const defaultSelection: SelectionState = {
   drawingId: null,
   disciplineKey: null,
   revision: null,
+}
+
+const defaultOverlay: OverlayState = {
+  disciplineKeys: [],
+  opacity: 0.6,
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -41,6 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selection, setSelectionState] = useState<SelectionState>(defaultSelection)
+  const [overlay, setOverlayState] = useState<OverlayState>(defaultOverlay)
 
   useEffect(() => {
     let cancelled = false
@@ -85,18 +100,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSelectionState((prev) => ({ ...prev, revision }))
   }, [])
 
+  const setOverlay = useCallback((patch: Partial<OverlayState>) => {
+    setOverlayState((prev) => ({ ...prev, ...patch }))
+  }, [])
+
+  const toggleOverlayDiscipline = useCallback((key: string) => {
+    setOverlayState((prev) => {
+      const next = prev.disciplineKeys.includes(key)
+        ? prev.disciplineKeys.filter((k) => k !== key)
+        : [...prev.disciplineKeys, key]
+      return { ...prev, disciplineKeys: next }
+    })
+  }, [])
+
+  useEffect(() => {
+    setOverlayState((prev) => ({ ...prev, disciplineKeys: [] }))
+  }, [selection.drawingId])
+
   const value = useMemo<AppContextValue>(
     () => ({
       normalized,
       loading,
       error,
       selection,
+      overlay,
       setSelection,
+      setOverlay,
       selectDrawing,
       selectDiscipline,
       selectRevision,
+      toggleOverlayDiscipline,
     }),
-    [normalized, loading, error, selection, setSelection, selectDrawing, selectDiscipline, selectRevision]
+    [normalized, loading, error, selection, overlay, setSelection, setOverlay, selectDrawing, selectDiscipline, selectRevision, toggleOverlayDiscipline]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
