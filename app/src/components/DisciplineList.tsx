@@ -1,4 +1,4 @@
-import type { Drawing, Revision } from '../types/metadata'
+import type { Region, Revision } from '../types/metadata'
 import { useApp } from '../context/AppContext'
 
 /** 선택된 도면의 공종 목록 + 선택된 공종의 리비전 목록 */
@@ -25,7 +25,17 @@ export function DisciplineList() {
         revisions.push({ label: r.version, revision: r })
       })
     }
-    selectedDiscipline.regions?.forEach((region) => {
+    // regions가 메타데이터에서 객체({ A: {...}, B: {...} })로 올 수 있음
+    const rawRegions = selectedDiscipline.regions
+    const regionList: { name: string; revisions?: Revision[] }[] = Array.isArray(rawRegions)
+      ? rawRegions
+      : rawRegions && typeof rawRegions === 'object'
+        ? Object.entries(rawRegions).map(([key, region]) => ({
+            name: (region as Region).name ?? key,
+            revisions: (region as Region).revisions,
+          }))
+        : []
+    regionList.forEach((region) => {
       region.revisions?.forEach((r) => {
         revisions.push({ label: `${region.name} ${r.version}`, revision: r })
       })
