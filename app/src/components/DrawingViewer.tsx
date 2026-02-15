@@ -53,15 +53,20 @@ export function DrawingViewer() {
     for (const key of overlay.disciplineKeys) {
       const d = drawing.disciplines[key]
       if (!d) continue
+      // 현재 선택한 공종이면 선택한 리비전 이미지 사용, 아니면 해당 공종 기본/첫 리비전
+      const revisionImage =
+        selection.disciplineKey === key && selection.revision?.image
+          ? selection.revision.image
+          : d.revisions?.[0]?.image
       const src = getDisciplineImagePath(
         drawing.image,
         d.image,
-        d.revisions?.[0]?.image
+        revisionImage
       )
       layers.push({ key, src, transform: d.imageTransform })
     }
     return { basePath, layers }
-  }, [normalized, selection.drawingId, overlay.disciplineKeys])
+  }, [normalized, selection.drawingId, selection.disciplineKey, selection.revision?.image, overlay.disciplineKeys])
 
   useEffect(() => {
     if (overlayMode) setBaseSize(null)
