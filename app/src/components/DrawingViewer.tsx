@@ -48,25 +48,29 @@ export function DrawingViewer() {
       return null
     const drawing = normalized.drawingsById[selection.drawingId]
     if (!drawing?.disciplines) return null
-    const basePath = `/data/drawings/${drawing.image}`
+    const baseImageFilename = drawing.image
+    const basePath = `/data/drawings/${baseImageFilename}`
     const layers: { key: string; src: string; transform?: ImageTransform }[] = []
     for (const key of overlay.disciplineKeys) {
       const d = drawing.disciplines[key]
       if (!d) continue
-      // 현재 선택한 공종이면 선택한 리비전 이미지 사용, 아니면 해당 공종 기본/첫 리비전
-      const revisionImage =
-        selection.disciplineKey === key && selection.revision?.image
-          ? selection.revision.image
-          : d.revisions?.[0]?.image
+      const isSelectedDiscipline = selection.disciplineKey === key
+      const revisionImage = isSelectedDiscipline && selection.revision?.image
+        ? selection.revision.image
+        : d.revisions?.[0]?.image
       const src = getDisciplineImagePath(
         drawing.image,
         d.image,
         revisionImage
       )
-      layers.push({ key, src, transform: d.imageTransform })
+      // 리비전별 위치 변화: 선택된 공종이면 선택한 리비전의 imageTransform, 아니면 사용 중인 이미지(첫 리비전)의 transform
+      const transform = isSelectedDiscipline && selection.revision?.imageTransform != null
+        ? selection.revision.imageTransform
+        : (d.revisions?.[0]?.imageTransform ?? d.imageTransform)
+      layers.push({ key, src, transform })
     }
-    return { basePath, layers }
-  }, [normalized, selection.drawingId, selection.disciplineKey, selection.revision?.image, overlay.disciplineKeys])
+    return { basePath, baseImageFilename, layers }
+  }, [normalized, selection.drawingId, selection.disciplineKey, selection.revision, overlay.disciplineKeys])
 
   useEffect(() => {
     if (overlayMode) setBaseSize(null)
@@ -99,7 +103,7 @@ export function DrawingViewer() {
   const drawing = normalized.drawingsById[selection.drawingId]
 
   if (overlayMode) {
-    const { basePath, layers } = overlayMode
+    const { basePath, baseImageFilename, layers } = overlayMode
     const scale = baseSize ? fitScale : 1
     const wrapperW = baseSize ? baseSize.w * scale : 0
     const wrapperH = baseSize ? baseSize.h * scale : 0
@@ -115,7 +119,7 @@ export function DrawingViewer() {
               style={{ width: wrapperW, height: wrapperH }}
             >
               <div
-                className="relative"
+                className="relative overflow-visible"
                 style={{
                   width: baseSize.w,
                   height: baseSize.h,
@@ -131,22 +135,45 @@ export function DrawingViewer() {
                   onLoad={onBaseLoad}
                 />
                 {layers.map(({ key, src, transform }) => {
-                  const s = transform?.scale ?? 1
-                  const rotation = transform?.rotation ?? 0
+                  // relativeTo가 없거나 기준 도면과 같을 때만 (x,y,scale,rotation) 적용 → 픽셀 오차 없이 맞춤
+                  const useTransform =
+                    !transform?.relativeTo ||
+                    transform.relativeTo === baseImageFilename
+                  const x = useTransform ? (transform?.x ?? 0) : 0
+                  const y = useTransform ? (transform?.y ?? 0) : 0
+                  const s = useTransform ? (transform?.scale ?? 1) : 1
+                  const rotation = useTransform ? (transform?.rotation ?? 0) : 0
+                  // (x,y) = 등록점: 베이스의 (x,y)와 오버레이 이미지의 (x,y)가 겹치도록 함.
+                  // 요소를 (x,y)에 두고, 이미지에 translate(-x,-y)로 오버레이의 (x,y)를 요소 원점으로 이동.
                   return (
                     <img
                       key={key}
                       src={src}
                       alt={`오버레이 ${key}`}
-                      className="absolute pointer-events-none left-0 top-0"
-                      style={{
-                        width: baseSize.w,
-                        height: baseSize.h,
-                        objectFit: 'contain',
-                        transformOrigin: '50% 50%',
-                        transform: `scale(${s}) rotate(${rotation}rad)`,
-                        opacity: overlay.opacity,
-                      }}
+                      className="absolute pointer-events-none"
+                      style={
+                        useTransform
+                          ? {
+                              left: x,
+                              top: y,
+                              width: 'auto',
+                              height: 'auto',
+                              maxWidth: 'none',
+                              transformOrigin: '0 0',
+                              transform: `translate(${-x}px, ${-y}px) scale(${s}) rotate(${rotation}rad)`,
+                              opacity: overlay.opacity,
+                            }
+                          : {
+                              left: 0,
+                              top: 0,
+                              width: baseSize.w,
+                              height: baseSize.h,
+                              objectFit: 'contain',
+                              transformOrigin: '50% 50%',
+                              transform: `scale(${s}) rotate(${rotation}rad)`,
+                              opacity: overlay.opacity,
+                            }
+                      }
                     />
                   )})}
               </div>

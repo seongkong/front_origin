@@ -117,6 +117,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setOverlayState((prev) => ({ ...prev, disciplineKeys: [] }))
   }, [selection.drawingId])
 
+  // 사이드바에서 공종 선택 시 겹쳐보기는 해당 공종만 체크(나머지 해제), 오버레이 보기는 겹쳐보기에서 2개 이상 직접 체크할 때만
+  useEffect(() => {
+    if (!selection.drawingId) return
+    setOverlayState((prev) => ({
+      ...prev,
+      disciplineKeys: selection.disciplineKey ? [selection.disciplineKey] : [],
+    }))
+  }, [selection.drawingId, selection.disciplineKey])
+
   const value = useMemo<AppContextValue>(
     () => ({
       normalized,
