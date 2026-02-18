@@ -2,10 +2,10 @@
 
 ## 실행 방법
 
-`app` 폴더에서 아래 명령을 실행합니다.
+프로젝트 루트(`front_origin`)에서 아래 명령을 실행합니다.  
+`postinstall` 스크립트가 `app` 폴더 의존성을 자동으로 설치합니다.
 
 ```
-cd app
 npm install
 npm run dev
 ```
