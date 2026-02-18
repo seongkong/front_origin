@@ -2,6 +2,7 @@
   "name": "front_origin",
   "private": true,
   "scripts": {
+    "postinstall": "npm install --prefix app",
     "dev": "npm run dev --prefix app",
     "build": "npm run build --prefix app",
     "preview": "npm run preview --prefix app"
