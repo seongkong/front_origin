@@ -17,7 +17,7 @@ export function DisciplineList() {
     ? drawing.disciplines[selection.disciplineKey]
     : null
 
-  /** 공종/region에서 쓸 수 있는 리비전들을 평탄화 (표시용) */
+  /** 공종/region에서 쓸 수 있는 리비전들을 평탄화 후 날짜순 정렬 (이전/다음용) */
   const revisions: { label: string; revision: Revision }[] = []
   if (selectedDiscipline) {
     if (selectedDiscipline.revisions?.length) {
@@ -25,7 +25,6 @@ export function DisciplineList() {
         revisions.push({ label: r.version, revision: r })
       })
     }
-    // regions가 메타데이터에서 객체({ A: {...}, B: {...} })로 올 수 있음
     const rawRegions = selectedDiscipline.regions
     const regionList: { name: string; revisions?: Revision[] }[] = Array.isArray(rawRegions)
       ? rawRegions
@@ -40,7 +39,18 @@ export function DisciplineList() {
         revisions.push({ label: `${region.name} ${r.version}`, revision: r })
       })
     })
+    revisions.sort((a, b) => {
+      const da = a.revision.date ? new Date(a.revision.date).getTime() : 0
+      const db = b.revision.date ? new Date(b.revision.date).getTime() : 0
+      return da - db || a.label.localeCompare(b.label)
+    })
   }
+
+  const currentRevIndex = selection.revision
+    ? revisions.findIndex((r) => r.revision.image === selection.revision?.image && r.revision.version === selection.revision?.version)
+    : -1
+  const hasPrev = currentRevIndex > 0
+  const hasNext = currentRevIndex < revisions.length - 1 // -1이면 "다음"으로 첫 리비전 이동
 
   return (
     <div className="mt-4">
@@ -69,7 +79,26 @@ export function DisciplineList() {
           {revisions.length === 0 ? (
             <p className="text-xs text-gray-500">리비전 없음 (기준 도면만)</p>
           ) : (
-            <ul className="list-none p-0 m-0 flex flex-col gap-0.5">
+            <>
+              <div className="flex gap-1 mb-1.5">
+                <button
+                  type="button"
+                  disabled={!hasPrev}
+                  onClick={() => hasPrev && selectRevision(revisions[currentRevIndex - 1].revision)}
+                  className="flex-1 text-xs py-1.5 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-100 text-gray-700"
+                >
+                  ◀ 이전
+                </button>
+                <button
+                  type="button"
+                  disabled={!hasNext}
+                  onClick={() => hasNext && selectRevision(revisions[currentRevIndex + 1].revision)}
+                  className="flex-1 text-xs py-1.5 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-100 text-gray-700"
+                >
+                  다음 ▶
+                </button>
+              </div>
+              <ul className="list-none p-0 m-0 flex flex-col gap-0.5">
               {revisions.map(({ label, revision }) => (
                 <li key={label}>
                   <button
@@ -88,7 +117,8 @@ export function DisciplineList() {
                   </button>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </>
           )}
         </div>
       )}
