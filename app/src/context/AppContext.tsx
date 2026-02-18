@@ -126,6 +126,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }))
   }, [selection.drawingId, selection.disciplineKey])
 
+  // 도면을 직접 선택했을 때(공종 미선택 상태) 기본 공종을 자동 선택: '건축' 우선, 없으면 첫 공종
+  useEffect(() => {
+    if (!normalized || !selection.drawingId) return
+    if (selection.disciplineKey != null) return
+    const drawing = normalized.drawingsById[selection.drawingId]
+    const keys = drawing?.disciplines ? Object.keys(drawing.disciplines) : []
+    if (keys.length === 0) return
+    const nextKey = keys.includes('건축') ? '건축' : keys[0]
+    setSelectionState((prev) => ({
+      ...prev,
+      disciplineKey: nextKey,
+      revision: null,
+    }))
+  }, [normalized, selection.drawingId, selection.disciplineKey])
+
   const value = useMemo<AppContextValue>(
     () => ({
       normalized,

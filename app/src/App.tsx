@@ -6,7 +6,7 @@ import { DrawingViewer } from './components/DrawingViewer'
 import { useApp } from './context/AppContext'
 
 function App() {
-  const { normalized, loading, error, selection } = useApp()
+  const { normalized, loading, error, selection, selectDrawing } = useApp()
 
   const sidebar = (
     <>
@@ -40,6 +40,17 @@ function App() {
             <p className="text-gray-500">왼쪽 트리에서 도면을 선택하세요.</p>
           ) : (
             <div className="space-y-2 text-sm">
+              {drawing?.parent != null && (
+                <p className="mb-1">
+                  <button
+                    type="button"
+                    onClick={() => selectDrawing(drawing!.parent!)}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    ← 상위 도면으로
+                  </button>
+                </p>
+              )}
               <p className="text-gray-700">
                 <span className="font-medium">도면:</span>{' '}
                 [{drawing?.id}] {drawing?.name}
