@@ -8,10 +8,6 @@ export interface NormalizedMetadata {
 
 /**
  * Load raw metadata.json from public/data.
- *
- * NOTE:
- * - 실제로 실행하려면 `data/metadata.json`을 Vite 프로젝트의 `public/data/metadata.json`으로
- *   복사하거나, dev 서버에서 해당 경로를 서빙하도록 맞춰줘야 합니다.
  */
 export async function fetchMetadata(): Promise<Metadata> {
   const response = await fetch('/data/metadata.json')
