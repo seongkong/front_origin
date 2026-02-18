@@ -45,7 +45,7 @@ function App() {
                   <button
                     type="button"
                     onClick={() => selectDrawing(drawing!.parent!)}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                    className="text-amber-600 hover:text-amber-700 font-medium"
                   >
                     ← 상위 도면으로
                   </button>
