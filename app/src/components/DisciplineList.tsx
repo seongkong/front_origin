@@ -51,9 +51,9 @@ export function DisciplineList() {
             <button
               type="button"
               onClick={() => selectDiscipline(key)}
-              className={`w-full text-left text-sm px-2 py-1.5 rounded hover:bg-gray-200/80 ${
+              className={`w-full text-left text-sm px-2 py-1.5 rounded transition-colors hover:bg-gray-100 ${
                 selectedDiscipline === drawing.disciplines![key]
-                  ? 'font-semibold bg-gray-200 text-gray-900'
+                  ? 'font-semibold bg-amber-50 text-gray-900'
                   : 'text-gray-700'
               }`}
             >
@@ -75,9 +75,9 @@ export function DisciplineList() {
                   <button
                     type="button"
                     onClick={() => selectRevision(revision)}
-                    className={`w-full text-left text-sm px-2 py-1.5 rounded hover:bg-gray-200/80 ${
+                    className={`w-full text-left text-sm px-2 py-1.5 rounded transition-colors hover:bg-gray-100 ${
                       selection.revision?.image === revision.image
-                        ? 'font-semibold bg-gray-200 text-gray-900'
+                        ? 'font-semibold bg-amber-50 text-gray-900'
                         : 'text-gray-700'
                     }`}
                   >

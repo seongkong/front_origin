@@ -22,6 +22,7 @@ export function DrawingViewer() {
   const [baseSize, setBaseSize] = useState<{ w: number; h: number } | null>(null)
   const [fitScale, setFitScale] = useState<number>(1)
   const [singleImageSize, setSingleImageSize] = useState<{ w: number; h: number } | null>(null)
+  const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null)
   const overlayContainerRef = useRef<HTMLDivElement>(null)
   const singleImageContainerRef = useRef<HTMLDivElement>(null)
 
@@ -277,14 +278,17 @@ export function DrawingViewer() {
                   {childrenWithPosition.map((child) => {
                     const vertices = child.position!.vertices
                     const points = vertices.map(([x, y]) => `${x},${y}`).join(' ')
+                    const isHovered = hoveredRegionId === child.id
                     return (
                       <polygon
                         key={child.id}
                         points={points}
-                        fill="rgba(59, 130, 246, 0.25)"
-                        stroke="rgb(37, 99, 235)"
-                        strokeWidth={2}
-                        className="cursor-pointer hover:fill-blue-400/40"
+                        fill={isHovered ? 'rgba(245, 158, 11, 0.5)' : 'rgba(245, 158, 11, 0.2)'}
+                        stroke="rgb(245, 158, 11)"
+                        strokeWidth={isHovered ? 4 : 2}
+                        className="cursor-pointer transition-[fill,stroke-width] duration-150"
+                        onMouseEnter={() => setHoveredRegionId(child.id)}
+                        onMouseLeave={() => setHoveredRegionId(null)}
                         onClick={() => {
                           const keys = child.disciplines ? Object.keys(child.disciplines) : []
                           const disciplineKey = keys.includes('건축') ? '건축' : (keys[0] ?? null)

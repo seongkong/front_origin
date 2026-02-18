@@ -27,7 +27,9 @@ export function DrawingTree() {
     return (
       <div key={drawing.id} className="flex flex-col">
         <div
-          className="flex items-center gap-1 py-1 pr-2 rounded cursor-pointer hover:bg-gray-200/80 min-w-0"
+          className={`flex items-center gap-1 py-1 pr-2 rounded cursor-pointer min-w-0 transition-colors ${
+            isSelected ? 'bg-amber-50' : 'hover:bg-gray-100'
+          }`}
           style={{ paddingLeft: depth * 12 + 4 }}
           onClick={() => selectDrawing(drawing.id)}
         >
@@ -43,7 +45,9 @@ export function DrawingTree() {
             {hasChildren ? (isExpanded ? '▼' : '▶') : '·'}
           </button>
           <span
-            className={`text-sm truncate ${isSelected ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
+            className={`text-sm truncate ${
+              isSelected ? 'font-semibold text-gray-900' : 'text-gray-700'
+            }`}
             title={drawing.name}
           >
             [{drawing.id}] {drawing.name}
